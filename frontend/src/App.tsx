@@ -8,7 +8,9 @@ function App() {
 
   useEffect(()=>{
     const url = "http://localhost:5268/weatherforecast";
-    fetch(url).then((response) => {
+    fetch(url, {
+      method: 'POST'
+    }).then((response) => {
       response.json().then((json) => {
         console.log(json)
       })
