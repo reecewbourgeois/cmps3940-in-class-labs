@@ -1,46 +1,144 @@
-import { useEffect, useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from "react";
+import "./App.css";
+import axios from "axios";
+
+type Student = {
+    id: string;
+    name: string;
+    classification: number;
+};
+
+const BACKEND_URL_BASE = "http://localhost:5000";
+const GUID = "00000000-0000-0000-0000-000000000000";
 
 function App() {
-  const [count, setCount] = useState(0)
+    const [studentList, setStudentList] = useState<Student[]>([]);
+    const [student, setStudent] = useState<Student | null>(null);
+    const [upsertStatus, setUpsertStatus] = useState<number | null>(null);
+    const [deleteStatus, setDeleteStatus] = useState<number | null>(null);
+    const [updateClassificationStatus, setUpdateClassificationStatus] =
+        useState<number | null>(null);
 
-  useEffect(()=>{
-    const url = "http://localhost:5268/weatherforecast";
-    fetch(url, {
-      method: 'POST'
-    }).then((response) => {
-      response.json().then((json) => {
-        console.log(json)
-      })
-    })
-  },[]);
+    const getStudents = async () => {
+        const url = `${BACKEND_URL_BASE}/students`;
+        const { data, status } = await axios.get<Student[]>(url);
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+        if (status !== 200) throw new Error("Failed to fetch students");
+
+        setStudentList(data);
+    };
+
+    const getStudentById = async (id: string) => {
+        const url = `${BACKEND_URL_BASE}/student/${id}`;
+        const { data, status } = await axios.get<Student>(url);
+
+        if (status !== 200) throw new Error("Failed to fetch student");
+
+        setStudent(data);
+    };
+
+    const upsertStudent = async (student: Student) => {
+        const url = `${BACKEND_URL_BASE}/student`;
+        const { status } = await axios.post(url, student);
+
+        if (status !== 200) throw new Error("Failed to upsert student");
+
+        setUpsertStatus(status);
+    };
+
+    const deleteStudent = async (id: string) => {
+        const url = `${BACKEND_URL_BASE}/student/${id}`;
+        const { status } = await axios.delete(url);
+
+        if (status !== 200) throw new Error("Failed to delete student");
+
+        setDeleteStatus(status);
+    };
+
+    const updateStudentClassification = async (
+        id: string,
+        classification: number
+    ) => {
+        const url = `${BACKEND_URL_BASE}/student/${id}/${classification}`;
+        const { status } = await axios.put(url);
+
+        if (status !== 200)
+            throw new Error("Failed to update student classification");
+
+        setUpdateClassificationStatus(status);
+    };
+
+    return (
+        <div className="app">
+            <div className="endpoint-test-container">
+                <button
+                    onClick={() => {
+                        getStudents();
+                    }}
+                >
+                    Verify GetStudents Works
+                </button>
+
+                {studentList.length > 0 && (
+                    <p>Students: {studentList.length}</p>
+                )}
+            </div>
+
+            <div className="endpoint-test-container">
+                <button
+                    onClick={() => {
+                        getStudentById(GUID);
+                    }}
+                >
+                    Verify GetStudentById Works
+                </button>
+
+                {student && <p>Student: {student.name}</p>}
+            </div>
+
+            <div className="endpoint-test-container">
+                <button
+                    onClick={() => {
+                        upsertStudent({
+                            id: GUID,
+                            name: "John Doe",
+                            classification: 1,
+                        });
+                    }}
+                >
+                    Verify UpsertStudent Works
+                </button>
+
+                {upsertStatus && <p>Student Upserted</p>}
+            </div>
+
+            <div className="endpoint-test-container">
+                <button
+                    onClick={() => {
+                        deleteStudent(GUID);
+                    }}
+                >
+                    Verify DeleteStudent Works
+                </button>
+
+                {deleteStatus && <p>Student Deleted</p>}
+            </div>
+
+            <div className="endpoint-test-container">
+                <button
+                    onClick={() => {
+                        updateStudentClassification(GUID, 2);
+                    }}
+                >
+                    Verify UpdateStudentClassification Works
+                </button>
+
+                {updateClassificationStatus && (
+                    <p>Student Classification Updated</p>
+                )}
+            </div>
+        </div>
+    );
 }
 
-export default App
+export default App;
