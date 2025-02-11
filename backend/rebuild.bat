@@ -6,6 +6,4 @@ docker rmi backend
 
 echo Building...
 docker build -t backend .
-
-@REM For Nginx
-docker run -d -p 5000:5000 -e ASPNETCORE_HTTP_PORTS=5000 --name backend backend
+docker run -d -p 5000:5000 -e ASPNETCORE_HTTP_PORTS=5000 --env-file .env --name backend backend

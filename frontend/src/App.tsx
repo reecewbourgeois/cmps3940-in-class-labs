@@ -7,9 +7,13 @@ type Student = {
     name: string;
     classification: number;
 };
+type UpsertStudent = {
+    id?: string;
+    name: string;
+    classification: number;
+};
 
 const BACKEND_URL_BASE = "http://localhost:5000";
-const GUID = "00000000-0000-0000-0000-000000000000";
 
 function App() {
     const [studentList, setStudentList] = useState<Student[]>([]);
@@ -37,7 +41,7 @@ function App() {
         setStudent(data);
     };
 
-    const upsertStudent = async (student: Student) => {
+    const upsertStudent = async (student: UpsertStudent) => {
         const url = `${BACKEND_URL_BASE}/student`;
         const { status } = await axios.post(url, student);
 
@@ -87,7 +91,9 @@ function App() {
             <div className="endpoint-test-container">
                 <button
                     onClick={() => {
-                        getStudentById(GUID);
+                        if (studentList.length === 0) return;
+
+                        getStudentById(studentList[0].id);
                     }}
                 >
                     Verify GetStudentById Works
@@ -100,9 +106,8 @@ function App() {
                 <button
                     onClick={() => {
                         upsertStudent({
-                            id: GUID,
-                            name: "John Doe",
                             classification: 1,
+                            name: "Billy Bob",
                         });
                     }}
                 >
@@ -115,7 +120,9 @@ function App() {
             <div className="endpoint-test-container">
                 <button
                     onClick={() => {
-                        deleteStudent(GUID);
+                        if (studentList.length === 0) return;
+
+                        deleteStudent(studentList[0].id);
                     }}
                 >
                     Verify DeleteStudent Works
@@ -127,7 +134,9 @@ function App() {
             <div className="endpoint-test-container">
                 <button
                     onClick={() => {
-                        updateStudentClassification(GUID, 2);
+                        if (studentList.length === 0) return;
+
+                        updateStudentClassification(studentList[0].id, 2);
                     }}
                 >
                     Verify UpdateStudentClassification Works
