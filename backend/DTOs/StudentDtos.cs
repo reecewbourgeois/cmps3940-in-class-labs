@@ -1,8 +1,13 @@
+using backend.Entities;
 using backend.Types;
 
 namespace backend.DTOs;
 
-public record GetStudentDto(Guid Id, string Name, StudentClassification Classification) { }
+public record GetStudentDto(Guid Id, string Name, StudentClassification Classification)
+{
+    public GetStudentDto(Student student)
+        : this(student.Id, student.Name, student.Classification) { }
+}
 
 public record UpsertStudentDto(string Name, StudentClassification Classification, Guid? Id)
 {

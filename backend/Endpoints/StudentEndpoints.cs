@@ -1,6 +1,8 @@
 using backend.DTOs;
+using backend.Entities;
 using backend.Types;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace backend.Endpoints;
 
@@ -11,49 +13,79 @@ public static class StudentEndpoints
         /// Get all students
         app.MapGet(
             "/students",
-            () =>
+            async ([FromServices] PostgresDbContext context) =>
             {
-                return Results.Ok(
-                    new List<GetStudentDto>
-                    {
-                        new(new Guid(), "Bob", StudentClassification.Freshman),
-                        new(new Guid(), "Alice", StudentClassification.Sophomore),
-                        new(new Guid(), "Charlie", StudentClassification.Junior),
-                        new(new Guid(), "David", StudentClassification.Senior),
-                    }
-                );
+                return await context
+                    .Student.Select(student => new GetStudentDto(student))
+                    .ToListAsync();
             }
         );
 
         /// Get a specific student by id
         app.MapGet(
             "/student/{id}",
-            ([FromRoute] Guid id) =>
+            async ([FromServices] PostgresDbContext context, [FromRoute] Guid id) =>
             {
-                return Results.Ok(new GetStudentDto(id, "Bob", StudentClassification.Freshman));
+                var student = await context.Student.FindAsync(id);
+
+                if (student == null)
+                {
+                    return Results.NotFound();
+                }
+
+                return Results.Ok(new GetStudentDto(student));
             }
         );
 
         /// Upsert a student
         app.MapPost(
             "/student",
-            ([FromBody] UpsertStudentDto upsertDto) =>
+            async (
+                [FromServices] PostgresDbContext context,
+                [FromBody] UpsertStudentDto upsertDto
+            ) =>
             {
-                return Results.Ok(
-                    new GetStudentDto(
-                        upsertDto.Id ?? new Guid(),
-                        upsertDto.Name,
-                        upsertDto.Classification
-                    )
-                );
+                Student? student = null;
+
+                if (upsertDto.Id.HasValue)
+                {
+                    student = await context.Student.FindAsync(upsertDto.Id);
+
+                    if (student == null)
+                    {
+                        return Results.NotFound();
+                    }
+
+                    student.Name = upsertDto.Name;
+                    student.Classification = upsertDto.Classification;
+                }
+                else
+                {
+                    student = new Student(upsertDto.Name, upsertDto.Classification);
+
+                    await context.Student.AddAsync(student);
+                }
+
+                await context.SaveChangesAsync();
+                return Results.Ok(new GetStudentDto(student));
             }
         );
 
         /// Delete a student by id
         app.MapDelete(
             "/student/{id}",
-            ([FromRoute] Guid id) =>
+            async ([FromServices] PostgresDbContext context, [FromRoute] Guid id) =>
             {
+                var student = await context.Student.FindAsync(id);
+
+                if (student == null)
+                {
+                    return Results.NotFound();
+                }
+
+                context.Student.Remove(student);
+                await context.SaveChangesAsync();
+
                 return Results.Ok();
             }
         );
@@ -61,9 +93,23 @@ public static class StudentEndpoints
         /// Update a student's classification
         app.MapPut(
             "/student/{id}/{classification}",
-            ([FromRoute] Guid id, [FromRoute] StudentClassification classification) =>
+            async (
+                [FromServices] PostgresDbContext context,
+                [FromRoute] Guid id,
+                [FromRoute] StudentClassification classification
+            ) =>
             {
-                return Results.Ok(new GetStudentDto(id, "Bob", classification));
+                var student = await context.Student.FindAsync(id);
+
+                if (student == null)
+                {
+                    return Results.NotFound();
+                }
+
+                student.Classification = classification;
+                await context.SaveChangesAsync();
+
+                return Results.Ok(new GetStudentDto(student));
             }
         );
     }
