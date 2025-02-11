@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./App.css";
 import axios from "axios";
 
@@ -9,7 +9,6 @@ type Student = {
 };
 
 const BACKEND_URL_BASE = "http://localhost:5000";
-const GUID = "00000000-0000-0000-0000-000000000000";
 
 function App() {
     const [studentList, setStudentList] = useState<Student[]>([]);
@@ -18,15 +17,31 @@ function App() {
     const [deleteStatus, setDeleteStatus] = useState<number | null>(null);
     const [updateClassificationStatus, setUpdateClassificationStatus] =
         useState<number | null>(null);
+    const [randomGuid, setRandomGuid] = useState<string | null>(null);
 
-    const getStudents = async () => {
-        const url = `${BACKEND_URL_BASE}/students`;
-        const { data, status } = await axios.get<Student[]>(url);
+    // Fetch all students when the page loads
+    useEffect(() => {
+        const fetchStudents = async () => {
+            try {
+                const url = `${BACKEND_URL_BASE}/students`;
+                const { data, status } = await axios.get<Student[]>(url);
 
-        if (status !== 200) throw new Error("Failed to fetch students");
+                if (status !== 200) throw new Error("Failed to fetch students");
 
-        setStudentList(data);
-    };
+                setStudentList(data);
+
+                // Get a random GUID from the list of students
+                if (data.length > 0) {
+                    const randomStudent = data[Math.floor(Math.random() * data.length)];
+                    setRandomGuid(randomStudent.id);
+                }
+            } catch (error) {
+                console.error("Error fetching students:", error);
+            }
+        };
+
+        fetchStudents();
+    }, []); // Run once when the component mounts
 
     const getStudentById = async (id: string) => {
         const url = `${BACKEND_URL_BASE}/student/${id}`;
@@ -52,6 +67,9 @@ function App() {
 
         if (status !== 200) throw new Error("Failed to delete student");
 
+        // Remove deleted student from the list
+        setStudentList((prevList) => prevList.filter((student) => student.id !== id));
+
         setDeleteStatus(status);
     };
 
@@ -73,7 +91,26 @@ function App() {
             <div className="endpoint-test-container">
                 <button
                     onClick={() => {
-                        getStudents();
+                        const fetchStudents = async () => {
+                            try {
+                                const url = `${BACKEND_URL_BASE}/students`;
+                                const { data, status } = await axios.get<Student[]>(url);
+
+                                if (status !== 200) throw new Error("Failed to fetch students");
+
+                                setStudentList(data);
+
+                                // Get a random GUID from the list of students
+                                if (data.length > 0) {
+                                    const randomStudent = data[Math.floor(Math.random() * data.length)];
+                                    setRandomGuid(randomStudent.id);
+                                }
+                            } catch (error) {
+                                console.error("Error fetching students:", error);
+                            }
+                        };
+
+                        fetchStudents();
                     }}
                 >
                     Verify GetStudents Works
@@ -87,7 +124,7 @@ function App() {
             <div className="endpoint-test-container">
                 <button
                     onClick={() => {
-                        getStudentById(GUID);
+                        getStudentById(randomGuid!);
                     }}
                 >
                     Verify GetStudentById Works
@@ -100,7 +137,7 @@ function App() {
                 <button
                     onClick={() => {
                         upsertStudent({
-                            id: GUID,
+                            id: randomGuid!,
                             name: "John Doe",
                             classification: 1,
                         });
@@ -115,7 +152,7 @@ function App() {
             <div className="endpoint-test-container">
                 <button
                     onClick={() => {
-                        deleteStudent(GUID);
+                        deleteStudent(randomGuid!);
                     }}
                 >
                     Verify DeleteStudent Works
@@ -127,7 +164,7 @@ function App() {
             <div className="endpoint-test-container">
                 <button
                     onClick={() => {
-                        updateStudentClassification(GUID, 2);
+                        updateStudentClassification(randomGuid!, 2);
                     }}
                 >
                     Verify UpdateStudentClassification Works

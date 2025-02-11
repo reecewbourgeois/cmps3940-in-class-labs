@@ -13,21 +13,32 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddCors();
 builder.Services.AddHealthChecks();
 
-var defaultConnectionString = Environment.GetEnvironmentVariable("DefaultConnectionString");
+var localConnectionString = Environment.GetEnvironmentVariable("LocalConnectionString");
+var composeConnectionString = Environment.GetEnvironmentVariable("ComposeConnectionString");
 var allowedOrigins = Environment.GetEnvironmentVariable("AllowedOrigins");
 
-if (string.IsNullOrEmpty(defaultConnectionString))
+// Please ensure to have your .env file in the project root or if you are running from compose, ensure the environment variables are set there.
+
+// Ensure at least one of the connection strings has a value
+if (string.IsNullOrEmpty(localConnectionString) && string.IsNullOrEmpty(composeConnectionString))
 {
-    throw new InvalidOperationException("DefaultConnectionString is required");
+    throw new InvalidOperationException("At least one of 'LocalConnectionString' or 'ComposeConnectionString' must have a value.");
 }
+
+// Ensure AllowedOrigins is set
 if (string.IsNullOrEmpty(allowedOrigins))
 {
     throw new InvalidOperationException("AllowedOrigins is required");
 }
 
+// Determine the connection string to use
+string connectionString = localConnectionString ?? composeConnectionString;
+
 builder.Services.AddDbContext<PostgresDbContext>(options =>
-    options.UseNpgsql(defaultConnectionString)
+    options.UseNpgsql(connectionString, b => b.MigrationsAssembly("backend"))
 );
+
+
 
 var app = builder.Build();
 
@@ -37,6 +48,7 @@ using (var scope = app.Services.CreateScope())
     var dbContext = scope.ServiceProvider.GetRequiredService<PostgresDbContext>();
     try
     {
+        await dbContext.Database.MigrateAsync().ConfigureAwait(false);
         dbContext.Database.OpenConnection(); // Test if the connection is valid
         dbContext.Database.CloseConnection();
         Console.WriteLine("[CUSTOM LOG] Database connection successful.");
