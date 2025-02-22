@@ -10,7 +10,6 @@
 
 1. Install Docker
 2. Create a `.env` file at root using the `.env.sample` file as a template
-    - **Note: If you want to use a local PostgreSQL database, make sure your host is `host.docker.internal` instead of `localhost`**
 3. Use the rebuild script
     - `./rebuild.bat`
 
