@@ -12,6 +12,3 @@
 2. Create a `.env` file at root using the `.env.sample` file as a template
 3. Run the following compose command
     - `docker compose up -d`
-
-Note: By default, a PostgreSQL database will be created and stored in a docker volume. If you want to use a local database,
-modify the root `.env` file to use your machine's PostgreSQL port.

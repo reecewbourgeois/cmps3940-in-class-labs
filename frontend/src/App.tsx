@@ -83,9 +83,7 @@ function App() {
                     Verify GetStudents Works
                 </button>
 
-                {studentList.length > 0 && (
-                    <p>Students: {studentList.length}</p>
-                )}
+                <p>Students: {studentList.length}</p>
             </div>
 
             <div className="endpoint-test-container">
