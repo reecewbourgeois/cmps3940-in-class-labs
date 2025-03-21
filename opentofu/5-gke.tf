@@ -13,11 +13,23 @@ resource "google_container_cluster" "primary" {
   remove_default_node_pool = true
   initial_node_count       = 1
 
-  deletion_protection = false # In a production environment, this should be set to true
+  deletion_protection = false
 }
 
-# TASK: Create a node pool for the GKE cluster so the worker nodes can be created
-resource "" {
+# Create a node pool for the GKE cluster so the worker nodes can be created
+resource "google_container_node_pool" "node_pool" {
+  name       = var.gke_node_pool_name
+  cluster    = google_container_cluster.primary.name
+  location   = var.zone
+  node_count = 1
+
+  node_config {
+    preemptible     = true
+    machine_type    = "e2-medium"
+    service_account = google_service_account.gke_nodes.email
+  }
+
+  depends_on = [google_container_cluster.primary]
 }
 
 # Service Account for GKE Nodes

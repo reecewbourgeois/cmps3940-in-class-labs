@@ -11,6 +11,10 @@ resource "google_compute_global_address" "private_ip_range" {
   address_type  = "INTERNAL"
   prefix_length = 16
   network       = google_compute_network.main_network.id
+
+  lifecycle {
+    prevent_destroy = false
+  }
 }
 
 # Subnet for Private IP
@@ -27,7 +31,6 @@ resource "google_service_networking_connection" "private_service_connection" {
   network                 = google_compute_network.main_network.id
   service                 = "servicenetworking.googleapis.com"
   reserved_peering_ranges = [google_compute_global_address.private_ip_range.name]
-
-  deletion_policy = "ABANDON" # Prevents an error when destroying the resources. For some reason, network peering is not removed when the service connection is not set to ABANDON
+  deletion_policy         = "ABANDON" # This is to prevent an error when destroying the infrastructure. Note that the private IP range will not be deleted.
 }
 

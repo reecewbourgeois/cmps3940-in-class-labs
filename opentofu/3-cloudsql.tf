@@ -20,10 +20,15 @@ resource "google_sql_database_instance" "postgres_instance" {
   depends_on = [google_service_networking_connection.private_service_connection]
 }
 
-# TASK: Create database
-resource "" {
+# Create database
+resource "google_sql_database" "database" {
+  name     = var.postgres_db_name
+  instance = google_sql_database_instance.postgres_instance.name
 }
 
-# TASK: Create a database user that the api will use
-resource "" {
+# Create database user
+resource "google_sql_user" "db_user" {
+  name     = var.postgres_db_user
+  instance = google_sql_database_instance.postgres_instance.name
+  password = "secure-password" # TODO: Replace with environment variable
 }
