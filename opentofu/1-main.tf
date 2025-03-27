@@ -6,6 +6,12 @@ terraform {
       version = "6.24.0"
     }
   }
+
+  # Manually create Cloud Storage bucket for simplicity
+  backend "gcs" {
+    bucket = "your_bucket_here"
+    prefix = "some_prefix_here"
+  }
 }
 
 provider "google" {

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+data:
+  # Don't need an IP because the service name will be resolved by the DNS
+  ALLOWED_ORIGINS: "frontend_url_here"

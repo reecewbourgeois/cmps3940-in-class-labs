@@ -1,0 +1,10 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: frontend-ingress
+  annotations:
+    # If no static IP yet, use the following commands to create one and then view the IP address
+    # gcloud compute addresses create frontend-static-ip --global
+    # gcloud compute addresses describe frontend-static-ip --global --format="value(address)"
+    kubernetes.io/ingress.global-static-ip-name: frontend-static-ip
+    kubernetes.io/ingress.class: "gce"
