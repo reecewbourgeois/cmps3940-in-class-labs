@@ -13,7 +13,7 @@ type UpsertStudent = {
     classification: number;
 };
 
-const BACKEND_URL_BASE = "http://localhost:5000";
+const BACKEND_URL_BASE = "/api";
 
 function App() {
     const [studentList, setStudentList] = useState<Student[]>([]);

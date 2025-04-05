@@ -2,8 +2,51 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: us-central1-docker.pkg.dev/flawless-helper-451201-u9/cmps3940-docker-repo/backend:latest
+          imagePullPolicy: Always
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          ports:
+            - containerPort: 5000
+          env:
+            - name: ASPNETCORE_HTTP_PORTS
+              value: "5000"
+            - name: PostgresConnectionString
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: POSTGRES_CONNECTION_STRING
+            - name: AllowedOrigins
+              valueFrom:
+                configMapKeyRef:
+                  name: backend-config
+                  key: ALLOWED_ORIGINS
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: backend-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 5000
+      protocol: TCP
+  selector:
+    app: backend
