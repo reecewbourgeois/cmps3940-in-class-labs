@@ -30,5 +30,5 @@ resource "google_sql_database" "database" {
 resource "google_sql_user" "db_user" {
   name     = var.postgres_db_user
   instance = google_sql_database_instance.postgres_instance.name
-  password = "secure-password" # TODO: Replace with environment variable
+  password = var.postgres_db_user_password
 }

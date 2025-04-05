@@ -1,0 +1,58 @@
+name: "Build, Push, and Deploy to GKE"
+
+on:
+  push:
+    branches:
+      - "main"
+
+env:
+  PROJECT_ID: ""
+  GAR_LOCATION: ""
+  GKE_CLUSTER: ""
+  GKE_ZONE: ""
+  DOCKER_REPO_ID: ""
+
+jobs:
+  build-publish-deploy:
+    name: "Build, Push, and Deploy"
+    runs-on: "ubuntu-latest"
+    environment: "production"
+
+    permissions:
+      contents: "read"
+      id-token: "write"
+
+    steps:
+      - name: "Checkout"
+        uses: # actions/checkout@v4.2.2, using full SHA by GitHub's recommendation
+
+      # Authenticate to Google Cloud using Workload Identity Federation
+      - name: "Authenticate to Google Cloud"
+        uses: # google-github-actions/auth@v2.1.8, using full SHA by GitHub's recommendation
+        with:
+          credentials_json: ""
+
+      # Get the GKE credentials so we can deploy to the cluster
+      - name: "Set up GKE credentials"
+        uses: # google-github-actions/get-gke-credentials@v2.3.3, using full SHA by GitHub's recommendation
+        with:
+          # Parameters here
+
+      - name: "Docker Login to Artifact Registry"
+        run: |
+          gcloud auth print-access-token | docker login -u oauth2accesstoken --password-stdin "${{ env.GAR_LOCATION }}-docker.pkg.dev"
+
+      # Build and Push backend image
+      - name: "Build and push Backend Docker image"
+        run:
+          # Commands to build and push the image here
+
+      # Build and Push frontend image
+      - name: "Build and push Frontend Docker image"
+        run:
+          # Commands to build and push the image here
+
+      # Deploy the Docker image to the GKE cluster
+      - name: "Deploy to GKE"
+        run:
+          # Deploy commands here

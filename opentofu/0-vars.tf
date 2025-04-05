@@ -43,6 +43,13 @@ variable "postgres_db_user" {
   default     = "cmps3940-api"
 }
 
+# Note: manually inputting this instead if using an automated solution
+# only to reduce GCS cost by not having to enable the Google Secrets Manager API
+variable "postgres_db_user_password" {
+  description = "value of the password for the database user"
+  sensitive   = true
+}
+
 variable "docker_repo_id" {
   description = "The ID of the Docker repository"
   default     = "cmps3940-docker-repo"
